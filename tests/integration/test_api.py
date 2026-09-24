@@ -54,9 +54,7 @@ async def client(app: FastAPI) -> AsyncIterator[AsyncClient]:
 
 
 async def register(client: AsyncClient, username: str = "alice", quota: int = 3) -> None:
-    response = await client.post(
-        "/api/v1/users", json={"username": username, "daily_quota": quota}
-    )
+    response = await client.post("/api/v1/users", json={"username": username, "daily_quota": quota})
     assert response.status_code == 201, response.text
 
 

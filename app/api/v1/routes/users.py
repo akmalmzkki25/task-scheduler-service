@@ -8,15 +8,15 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)
-async def register_user(
-    body: UserCreate, users: UserServiceDep, tz: TzDep
-) -> ApiResponse[UserOut]:
+async def register_user(body: UserCreate, users: UserServiceDep, tz: TzDep) -> ApiResponse[UserOut]:
     user = await users.register(body.username, body.daily_quota)
     return ok(UserOut.from_domain(user, tz))
 
 
 @router.get("/{username}")
-async def get_user(username: str, users: UserServiceDep, tz: TzDep) -> ApiResponse[UserWithUsageOut]:
+async def get_user(
+    username: str, users: UserServiceDep, tz: TzDep
+) -> ApiResponse[UserWithUsageOut]:
     user, used, day = await users.get_usage_today(username)
     base = UserOut.from_domain(user, tz)
     usage = UsageOut(date=day, used=used, limit=user.daily_quota)

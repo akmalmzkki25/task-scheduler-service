@@ -1,7 +1,8 @@
 """Accepts task submissions as dictionaries and stores them with their first run time."""
 
 from collections.abc import Mapping
-from datetime import datetime, time
+from datetime import datetime
+from datetime import time as dt_time
 from typing import Any
 from uuid import uuid4
 from zoneinfo import ZoneInfo
@@ -30,7 +31,7 @@ class TaskSubmission(BaseModel):
     params: dict[str, Any] = Field(default_factory=dict)
 
     @property
-    def run_at(self) -> time:
+    def run_at(self) -> dt_time:
         return datetime.strptime(self.time, "%H:%M").time()
 
 

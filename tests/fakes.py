@@ -137,4 +137,3 @@ class FailingQuotaStore(InMemoryQuotaStore):
 
     async def ping(self) -> None:
         raise self.error
-

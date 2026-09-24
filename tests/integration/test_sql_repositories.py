@@ -121,9 +121,7 @@ async def test_claim_due_takes_only_due_tasks_and_moves_them(
     assert again == []
 
 
-async def test_concurrent_claims_never_overlap(
-    task_repo: SqlTaskRepository, alice: User
-) -> None:
+async def test_concurrent_claims_never_overlap(task_repo: SqlTaskRepository, alice: User) -> None:
     tasks = [make_task("alice", jakarta(12), target=f"/t{i}") for i in range(20)]
     for task in tasks:
         await task_repo.add(task)

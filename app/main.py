@@ -85,9 +85,7 @@ def _register_exception_handlers(app: FastAPI) -> None:
     async def handle_unexpected_error(request: Request, exc: Exception) -> JSONResponse:
         # The client gets an ID to quote; the traceback stays in the server log.
         error_id = uuid4().hex[:12]
-        logger.exception(
-            "Unhandled error %s on %s %s", error_id, request.method, request.url.path
-        )
+        logger.exception("Unhandled error %s on %s %s", error_id, request.method, request.url.path)
         return JSONResponse(
             error_payload("INTERNAL_ERROR", "An unexpected error occurred", error_id),
             status_code=500,

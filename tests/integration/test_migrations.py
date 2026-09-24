@@ -3,12 +3,12 @@
 import asyncio
 
 from alembic.autogenerate import compare_metadata
+from alembic.config import Config
 from alembic.migration import MigrationContext
 from sqlalchemy import Connection, text
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import command
-from alembic.config import Config
 from app.db.base import Base
 
 
