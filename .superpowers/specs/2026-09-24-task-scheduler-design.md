@@ -12,11 +12,11 @@ a per-user daily quota. The assessment grades four areas: module and logic desig
 maintainability, AI tool usage, and error handling with logging.
 
 ```python
-users = {'alice': {'quota': 3, 'executed': 0}, 'bob': {'quota': 5, 'executed': 0}}
+users = {"alice": {"quota": 3, "executed": 0}, "bob": {"quota": 5, "executed": 0}}
 tasks = [
-    {'user': 'alice', 'time': '12:00', 'action': 'sync', 'target': '/data/x'},
-    {'user': 'bob', 'time': '12:00', 'action': 'backup', 'target': '/srv/y'},
-    {'user': 'alice', 'time': '12:00', 'action': 'delete', 'target': '/tmp/z'},
+    {"user": "alice", "time": "12:00", "action": "sync", "target": "/data/x"},
+    {"user": "bob", "time": "12:00", "action": "backup", "target": "/srv/y"},
+    {"user": "alice", "time": "12:00", "action": "delete", "target": "/tmp/z"},
 ]
 ```
 
@@ -147,26 +147,30 @@ class ExecutionStatus(StrEnum):
     FAILED = "FAILED"
     QUOTA_EXCEEDED = "QUOTA_EXCEEDED"
 
+
 @dataclass(frozen=True)
 class User:
     username: str
     daily_quota: int
     created_at: datetime
 
+
 @dataclass(frozen=True)
 class Task:
     id: UUID
     username: str
-    run_at: time              # wall-clock time in the configured zone, seconds = 0
+    run_at: time  # wall-clock time in the configured zone, seconds = 0
     action: str
     params: Mapping[str, Any]
     next_run_at: datetime
     created_at: datetime
 
+
 @dataclass(frozen=True)
 class ClaimedTask:
     task: Task
-    scheduled_for: datetime   # next_run_at before the claim moved it
+    scheduled_for: datetime  # next_run_at before the claim moved it
+
 
 @dataclass(frozen=True)
 class ExecutionResult:
@@ -181,10 +185,11 @@ class ExecutionResult:
     started_at: datetime
     duration_ms: int
 
+
 @dataclass(frozen=True)
 class QuotaDecision:
     allowed: bool
-    used: int                 # count after this call
+    used: int  # count after this call
     limit: int
 ```
 
@@ -203,8 +208,9 @@ Used at task creation (`after = created_at`) and at claim (`after = now`).
 
 ```python
 class DomainError(Exception):
-    code: str                 # machine-readable, e.g. "USER_NOT_FOUND"
+    code: str  # machine-readable, e.g. "USER_NOT_FOUND"
     http_status: int
+
     def __init__(self, message: str): ...
 ```
 

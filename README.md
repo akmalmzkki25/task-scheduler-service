@@ -8,6 +8,77 @@ This project refactors a single-file legacy script (a global `users` dict, a glo
 responsibilities. Every action is simulated: `sync`, `backup`, and `delete` write a log
 line and never touch the filesystem.
 
+## Quick Start
+
+You need Python 3.12, a running Postgres 16, and a running Redis. For local development:
+
+```bash
+docker run -d --name postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=<password> -p 5432:5432 postgres:16
+docker run -d --name redis -p 6379:6379 redis:latest redis-server --requirepass "<password>"
+```
+
+Then set up the app (Windows paths shown; use `.venv/bin/` on macOS and Linux):
+
+```bash
+python -m venv .venv
+.venv/Scripts/python -m pip install -r requirements-dev.txt
+cp .env.example .env                      # fill in the two passwords
+.venv/Scripts/python scripts/create_databases.py
+.venv/Scripts/alembic upgrade head
+.venv/Scripts/fastapi dev app/main.py
+```
+
+`scripts/create_databases.py` only creates `task_scheduler` and `task_scheduler_test`
+when they're missing, so it's safe on a Postgres server other projects share.
+
+With `SEED_DEMO_DATA=true`, startup loads the legacy users and tasks. Interactive docs
+live at `http://127.0.0.1:8000/docs`.
+
+## API
+
+Everything under `/api/v1` answers with one envelope:
+`{"success", "data", "error": {"code", "message", "error_id"}, "meta": {"total", "page", "limit"}}`.
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/api/v1/users` | Register `{"username", "daily_quota"}` |
+| GET | `/api/v1/users/{username}` | User plus today's usage |
+| GET | `/api/v1/actions` | Registered actions with their params JSON schema |
+| POST | `/api/v1/tasks` | Submit `{"user", "time": "HH:MM", "action", "params"}` |
+| GET | `/api/v1/tasks?user=&page=&limit=` | List tasks |
+| POST | `/api/v1/scheduler/tick` | Run one tick now |
+| GET | `/api/v1/executions?user=&status=&page=&limit=` | Execution history, newest first |
+| GET | `/health` | Postgres and Redis status, `503` if either is down |
+
+```bash
+curl -X POST localhost:8000/api/v1/tasks -H "content-type: application/json" \
+  -d '{"user": "alice", "time": "12:00", "action": "sync", "params": {"target": "/data/x"}}'
+```
+
+## Testing
+
+```bash
+.venv/Scripts/python -m pytest --cov=app        # unit + integration, about 15 s
+.venv/Scripts/python -m pytest -m e2e           # real server and clock, about 1 min
+.venv/Scripts/ruff check . && .venv/Scripts/mypy app
+```
+
+| Suite | What runs | Needs |
+|---|---|---|
+| `tests/unit` | Domain, strategies, services, and scheduler with in-memory fakes and a fake clock | Nothing |
+| `tests/integration` | SQL repositories, Redis quota script, migration, and the HTTP API | Postgres + Redis |
+| `tests/e2e` | A real uvicorn process whose background loop runs tasks at the next wall-clock minute | Postgres + Redis |
+
+Integration and e2e tests use `TEST_DATABASE_URL` and `TEST_REDIS_URL`. They truncate
+only the three tables in `task_scheduler_test` and delete only `task_scheduler:*` keys.
+
+Two tests guard the concurrency rules, and each was checked against a broken version:
+- Without `FOR UPDATE SKIP LOCKED`, four parallel ticks claimed 80 times for 20 tasks.
+- A plain GET-then-INCR let 5 of 10 concurrent calls through a quota of 3.
+
+Current status: 105 unit and integration tests plus 1 e2e test pass, with 99% line
+coverage of `app/`. `ruff` and `mypy --strict` both pass.
+
 ## Business Rules
 
 1. **Users have a daily quota.** Each user has `daily_quota` executions per calendar day.
