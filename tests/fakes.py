@@ -1,0 +1,19 @@
+"""In-memory test doubles shared by unit tests."""
+
+from datetime import datetime, timedelta
+
+
+class FakeClock:
+    def __init__(self, start: datetime) -> None:
+        if start.tzinfo is None:
+            raise ValueError("FakeClock needs a timezone-aware datetime")
+        self._now = start
+
+    def now(self) -> datetime:
+        return self._now
+
+    def set(self, value: datetime) -> None:
+        self._now = value
+
+    def advance(self, **delta: float) -> None:
+        self._now += timedelta(**delta)
