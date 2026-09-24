@@ -2,6 +2,7 @@ import pytest
 
 from app.domain.errors import (
     DomainError,
+    InvalidTaskError,
     InvalidTaskParamsError,
     UnknownActionError,
     UserAlreadyExistsError,
@@ -30,6 +31,12 @@ from app.domain.errors import (
             "INVALID_TASK_PARAMS",
             422,
             "Invalid params for action 'sync': target: Field required",
+        ),
+        (
+            InvalidTaskError("time: String should match pattern"),
+            "INVALID_TASK",
+            422,
+            "Invalid task: time: String should match pattern",
         ),
     ],
 )

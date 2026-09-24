@@ -29,7 +29,7 @@ class StrategyRegistry:
     def names(self) -> list[str]:
         return sorted(self._strategies)
 
-    def list(self) -> list[AnyStrategy]:
+    def all(self) -> list[AnyStrategy]:
         return [self._strategies[name] for name in self.names()]
 
 

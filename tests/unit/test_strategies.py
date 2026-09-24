@@ -72,7 +72,7 @@ def test_default_registry_lists_actions_sorted() -> None:
     registry = build_default_registry(simulated_latency=0)
 
     assert registry.names() == ["backup", "delete", "sync"]
-    assert [s.name for s in registry.list()] == ["backup", "delete", "sync"]
+    assert [s.name for s in registry.all()] == ["backup", "delete", "sync"]
     assert isinstance(registry.get("sync"), SyncStrategy)
 
 

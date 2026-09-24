@@ -43,3 +43,11 @@ class InvalidTaskParamsError(DomainError):
 
     def __init__(self, action: str, details: str) -> None:
         super().__init__(f"Invalid params for action '{action}': {details}")
+
+
+class InvalidTaskError(DomainError):
+    code = "INVALID_TASK"
+    http_status = 422
+
+    def __init__(self, details: str) -> None:
+        super().__init__(f"Invalid task: {details}")
